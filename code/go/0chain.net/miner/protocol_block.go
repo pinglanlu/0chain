@@ -656,19 +656,6 @@ func (mc *Chain) updateFinalizedBlock(ctx context.Context, b *block.Block) error
 		}
 	}
 
-	proposedBlocks := mc.GetRound(b.Round).GetProposedBlocks()
-	for _, sb := range proposedBlocks {
-		if sb.MinerID == selfID && sb.Hash != b.Hash {
-			_, err := transaction.CollectInvalidFutureTxns(common.GetRootContext(), sb.CreationDate, cs.Nonce, selfID)
-			if err != nil {
-				logging.Logger.Error("[mvc] clean txns, get invalid future txns failed", zap.Error(err),
-					zap.String("miner", selfID), zap.String("block", b.Hash))
-			}
-
-			break
-		}
-	}
-
 	return nil
 }
 

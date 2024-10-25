@@ -2,7 +2,6 @@ package transaction
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -24,11 +23,6 @@ func GetTransaction(ctx context.Context, r *http.Request) (interface{}, error) {
 }
 
 func GetTransactionByHash(ctx context.Context, hash string) (interface{}, error) {
-	// check if txn is invalid future txn
-	if IsInvalidFutureTxn(hash) {
-		return nil, errors.New("invalid future transaction")
-	}
-
 	tem := datastore.GetEntityMetadata("txn")
 	if tem == nil {
 		return nil, nil

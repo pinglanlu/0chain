@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"0chain.net/core/cache"
 	"0chain.net/core/common"
 	"0chain.net/core/datastore"
 	"0chain.net/core/memorystore"
@@ -12,22 +11,9 @@ import (
 	"go.uber.org/zap"
 )
 
-var invalidFutureTxnsCache = cache.NewLRUCache[string, struct{}](100)
-
 // SetupWorkers - setup workers */
 func SetupWorkers(ctx context.Context) {
 	go CleanupWorker(ctx)
-}
-
-func IsInvalidFutureTxn(hash string) bool {
-	_, err := invalidFutureTxnsCache.Get(hash)
-	return err == nil // see txn in the cache, means it's invalid
-}
-
-func RemoveInvalidTxnsFromCache(hashes []string) {
-	for _, hash := range hashes {
-		invalidFutureTxnsCache.Remove(hash)
-	}
 }
 
 /*CleanupWorker - a worker to delete transactiosn that are no longer valid */
@@ -169,8 +155,6 @@ func RemoveFromPool(ctx context.Context, txns []datastore.Entity) {
 	err = transactionEntityMetadata.GetStore().MultiDeleteFromCollection(cctx, transactionEntityMetadata, txns)
 	if err != nil {
 		logging.Logger.Error("Error in MultiDeleteFromCollection", zap.Error(err))
-	} else {
-		RemoveInvalidTxnsFromCache(txnHashes)
 	}
 }
 
@@ -207,10 +191,6 @@ func CollectInvalidFutureTxns(ctx context.Context, creationDate common.Timestamp
 
 	if len(futureTxns) == 0 {
 		return nil, nil
-	}
-
-	for _, hash := range txnHashes {
-		invalidFutureTxnsCache.Add(hash, struct{}{})
 	}
 
 	logging.Logger.Info("[mvc] find invalid future transactions", zap.Any("txns", txnHashes))

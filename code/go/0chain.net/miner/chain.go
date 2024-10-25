@@ -360,7 +360,6 @@ func (mc *Chain) deleteTxns(txns []datastore.Entity) error {
 		return err
 	}
 
-	transaction.RemoveInvalidTxnsFromCache(txnHashes)
 	return nil
 }
 
