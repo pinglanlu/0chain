@@ -644,7 +644,7 @@ func (mc *Chain) updateFinalizedBlock(ctx context.Context, b *block.Block) error
 		logging.Logger.Error("[mvc] clean txns, could not find node state", zap.Error(err),
 			zap.String("miner", selfID), zap.String("block", b.Hash))
 	} else {
-		otxns, err := transaction.RemoveOldNonceTxns(common.GetRootContext(), selfID, cs.Nonce)
+		otxns, err := transaction.GetOldNonceTxns(common.GetRootContext(), selfID, cs.Nonce)
 		if err != nil {
 			logging.Logger.Error("[mvc] clean txns, could not remove old nonce txns", zap.Error(err))
 		} else {
@@ -656,22 +656,13 @@ func (mc *Chain) updateFinalizedBlock(ctx context.Context, b *block.Block) error
 		}
 	}
 
-	// check self generated block and remove all txns send from this miner after the block creation date
 	proposedBlocks := mc.GetRound(b.Round).GetProposedBlocks()
 	for _, sb := range proposedBlocks {
 		if sb.MinerID == selfID && sb.Hash != b.Hash {
-			// cleanTxnCtx, cancel := context.WithTimeout(context.Background(), 7*time.Second)
-			// defer cancel()
-			ftxns, err := transaction.RemoveFutureTxns(common.GetRootContext(), sb.CreationDate, cs.Nonce, selfID)
+			_, err := transaction.CollectInvalidFutureTxns(common.GetRootContext(), sb.CreationDate, cs.Nonce, selfID)
 			if err != nil {
-				logging.Logger.Error("[mvc] clean txns, future failed", zap.Error(err),
+				logging.Logger.Error("[mvc] clean txns, get invalid future txns failed", zap.Error(err),
 					zap.String("miner", selfID), zap.String("block", b.Hash))
-			} else {
-				if len(ftxns) > 0 {
-					if err := mc.deleteTxns(ftxns); err != nil {
-						logging.Logger.Error("[mvc] clean txns, delete future failed", zap.Error(err))
-					}
-				}
 			}
 
 			break

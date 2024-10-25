@@ -356,7 +356,12 @@ func (mc *Chain) deleteTxns(txns []datastore.Entity) error {
 		txnHashes[i] = txn.(*transaction.Transaction).Hash
 	}
 	logging.Logger.Debug("delete txns", zap.Any("txns", txnHashes))
-	return transactionMetadataProvider.GetStore().MultiDelete(ctx, transactionMetadataProvider, txns)
+	if err := transactionMetadataProvider.GetStore().MultiDelete(ctx, transactionMetadataProvider, txns); err != nil {
+		return err
+	}
+
+	transaction.RemoveInvalidTxnsFromCache(txnHashes)
+	return nil
 }
 
 // SetPreviousBlock - set the previous block.
