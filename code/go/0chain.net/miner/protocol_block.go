@@ -960,13 +960,10 @@ func txnIterHandlerFunc(
 			return true, nil
 		}
 
-		if fee == 0 { // exempt transaction
-			if tii.exemptTxnNum > 0 {
-				// only allow 1 exempt transaction per block
-				return true, nil // return and continue
-			}
-
-			tii.exemptTxnNum++
+		isExemptTxn := fee == 0
+		if isExemptTxn && tii.exemptTxnNum > 0 {
+			// only allow 1 exempt transaction per block
+			return true, nil
 		}
 
 		if mc.IsFeeEnabled() {
@@ -1014,6 +1011,11 @@ func txnIterHandlerFunc(
 			zap.String("txn", txn.Hash))
 
 		tii.cost += cost
+
+		if isExemptTxn { // exempt transaction
+			tii.exemptTxnNum++
+		}
+
 		if tii.byteSize >= mc.MaxByteSize() {
 			logging.Logger.Debug("generate block (too big block size)",
 				zap.Bool("byteSize >= mc.NMaxByteSize", tii.byteSize >= mc.ChainConfig.MaxByteSize()),
