@@ -306,13 +306,6 @@ func (c *Chain) SendSmartContractTxn(txn *httpclientutil.Transaction,
 	scData *httpclientutil.SmartContractTxnData,
 	minerUrls []string,
 	sharderUrls []string) error {
-
-	// if !httpclientutil.AcquireTxnLock(time.Second) {
-	// 	return httpclientutil.ErrTxnSendBusy
-	// }
-	// logging.Logger.Debug("[mvc] acquire txn lock")
-	// incTxnSendCount(1)
-
 	txn.TransactionType = httpclientutil.TxnTypeSmartContract
 	if txn.Fee == 0 {
 		scBytes, err := json.Marshal(scData)
@@ -329,20 +322,18 @@ func (c *Chain) SendSmartContractTxn(txn *httpclientutil.Transaction,
 		txn.Fee = int64(fee)
 	}
 
-	nextNonce := node.Self.GetNextNonce()
-	if nextNonce == 0 {
-		// try get nonce from LFB
-		lfb := c.GetLatestFinalizedBlock()
-		if lfb != nil {
-			var err error
-			nextNonce, err = c.GetCurrentSelfNonce(node.Self.Underlying().GetKey(), lfb.ClientState)
-			if err != nil && state.ErrInvalidState(err) {
-				return err
-			}
+	var (
+		nextNonce int64
+		lfb       = c.GetLatestFinalizedBlock()
+	)
+	if lfb != nil {
+		var err error
+		nextNonce, err = c.GetCurrentSelfNonce(node.Self.Underlying().GetKey(), lfb.ClientState)
+		if err != nil && state.ErrInvalidState(err) {
+			return err
 		}
-
-		logging.Logger.Debug("[mvc] nonce, set lfb nonce in send smart txn", zap.Int64("nonce", nextNonce))
 	}
+
 	logging.Logger.Debug("[mvc] nonce, send txn with nonce", zap.Int64("nonce", nextNonce))
 	txn.Nonce = nextNonce
 
