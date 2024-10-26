@@ -134,10 +134,6 @@ func (msc *MinerSmartContract) VCAdd(t *transaction.Transaction,
 		return "", common.NewErrorf("vc_add", "could not get register node list: %v", err)
 	}
 
-	if len(rids) > 0 {
-		return "", common.NewError("vc_add", "there are pending register node")
-	}
-
 	for _, rid := range rids {
 		if rid == rnr.ID {
 			return "", common.NewError("vc_add", "node already registered")
