@@ -229,15 +229,17 @@ func (gn *GlobalNode) setInt(balances cstate.StateContextI, key string, change i
 				g2 := e.(*globalNodeV2)
 				initGlobalNodeVCRounds(g2)
 
-				// apply changes
-				vcPrefixLen := len(vcRoundsPrefix)
-				phase := StringToPhase(key[vcPrefixLen:])
-				if phase == Unknown {
-					return fmt.Errorf("unknown phase: %s", key)
-				}
+				// apply changes if any
+				if isVCPRounds(key) {
+					vcPrefixLen := len(vcRoundsPrefix)
+					phase := StringToPhase(key[vcPrefixLen:])
+					if phase == Unknown {
+						return fmt.Errorf("unknown phase: %s", key)
+					}
 
-				g2.VCPhaseRounds[int(phase)] = int(change)
-				logging.Logger.Debug("[mvc] migrate VC phase rounds", zap.Any("vc phase rounds", g2.VCPhaseRounds))
+					g2.VCPhaseRounds[int(phase)] = int(change)
+					logging.Logger.Debug("[mvc] migrate VC phase rounds", zap.Any("vc phase rounds", g2.VCPhaseRounds))
+				}
 				return nil
 			})
 		case "v2":
