@@ -139,7 +139,7 @@ func (mc *Chain) DKGProcess(ctx context.Context) {
 		lfbPhaseNode, err := mc.GetPhaseOfBlock(lfb)
 		if err != nil {
 			logging.Logger.Error("[mvc] update finalized block - get phase of block failed", zap.Error(err))
-			return
+			continue
 		}
 
 		if lfbPhaseNode.Phase > pn.Phase {
@@ -172,7 +172,7 @@ func (mc *Chain) DKGProcess(ctx context.Context) {
 		lfmb := mc.GetCurrentMagicBlock()
 		if lfmb == nil {
 			logging.Logger.Error("[mvc] dkg process: can't get lfmb")
-			return
+			continue
 		}
 
 		logging.Logger.Debug("[mvc] dkg process: run phase function",
