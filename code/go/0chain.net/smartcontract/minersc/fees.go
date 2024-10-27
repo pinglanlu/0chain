@@ -320,13 +320,19 @@ func (msc *MinerSmartContract) adjustViewChange(gn *GlobalNode,
 			}
 
 			if len(deleteSharders) > 0 {
-				sid := deleteSharders[0]
-				_, ok := mb.Sharders.NodesMap[sid]
-				if !ok {
-					deleteSharders = deleteSharders[1:]
-					if err := updateDeleteNodeIDs(balances, spenum.Sharder, deleteSharders); err != nil {
-						return common.NewErrorf("pay_fees", "can't update delete sharders: %v", err)
+				var remainingSharders []string
+				for _, did := range deleteSharders {
+					if _, ok := mb.Sharders.NodesMap[did]; ok {
+						// If the sharder is in the NodesMap, keep it in the remainingSharders
+						remainingSharders = append(remainingSharders, did)
 					}
+				}
+
+				// Update deleteSharders to be the slice of remaining sharders
+				deleteSharders = remainingSharders
+
+				if err := updateDeleteNodeIDs(balances, spenum.Sharder, deleteSharders); err != nil {
+					return common.NewErrorf("pay_fees", "can't update delete sharders: %v", err)
 				}
 			}
 
