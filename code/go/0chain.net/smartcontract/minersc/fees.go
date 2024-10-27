@@ -275,12 +275,18 @@ func (msc *MinerSmartContract) adjustViewChange(gn *GlobalNode,
 
 			// remove the delete miner from the list if it's not in the new mb
 			if len(deleteMiners) > 0 {
+				// Create a new slice to hold the miners that should not be deleted
+				var remainingMiners []string
+
 				for _, did := range deleteMiners {
-					_, ok := mb.Miners.NodesMap[did]
-					if !ok {
-						deleteMiners = deleteMiners[1:]
+					if _, ok := mb.Miners.NodesMap[did]; ok {
+						// If the miner exists in the NodesMap, keep it in the remainingMiners
+						remainingMiners = append(remainingMiners, did)
 					}
 				}
+
+				// Update deleteMiners to be the slice of remaining miners
+				deleteMiners = remainingMiners
 
 				if err := updateDeleteNodeIDs(balances, spenum.Miner, deleteMiners); err != nil {
 					return common.NewErrorf("pay_fees", "can't update delete miners: %v", err)
