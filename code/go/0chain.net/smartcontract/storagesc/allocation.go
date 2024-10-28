@@ -1,6 +1,7 @@
 package storagesc
 
 import (
+	"0chain.net/core/util/entitywrapper"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -592,6 +593,8 @@ type updateAllocationRequest struct {
 	SetThirdPartyExtendable bool   `json:"set_third_party_extendable"`
 	FileOptionsChanged      bool   `json:"file_options_changed"`
 	FileOptions             uint16 `json:"file_options"`
+
+	OwnerSigningPublicKey string `json:"owner_signing_public_key"`
 }
 
 func (uar *updateAllocationRequest) decode(b []byte) error {
@@ -1194,6 +1197,16 @@ func (sc *StorageSmartContract) updateAllocationRequestInternal(
 				return "", common.NewError("allocation_updating_failed", "owner public key is required when updating owner id")
 			}
 			alloc.OwnerPublicKey = request.OwnerPublicKey
+		}
+
+		if request.OwnerSigningPublicKey != "" {
+			if err = sa.Update(&storageAllocationV3{}, func(e entitywrapper.EntityI) error {
+				a := e.(*storageAllocationV3)
+				a.OwnerSigningPublickKey = &request.OwnerSigningPublicKey
+				return nil
+			}); err != nil {
+				return "", common.NewError("allocation_updating_failed", err.Error())
+			}
 		}
 	}
 
