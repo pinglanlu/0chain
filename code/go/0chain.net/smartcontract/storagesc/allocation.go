@@ -95,8 +95,9 @@ type newAllocationRequest struct {
 	FileOptionsChanged   bool       `json:"file_options_changed"`
 	FileOptions          uint16     `json:"file_options"`
 
-	IsEnterprise   bool `json:"is_enterprise"`
-	StorageVersion int  `json:"storage_version"`
+	IsEnterprise           bool   `json:"is_enterprise"`
+	StorageVersion         int    `json:"storage_version"`
+	OwnerSigningPublickKey string `json:"owner_signing_public_key"`
 }
 
 // storageAllocation from the request
@@ -140,20 +141,21 @@ func (nar *newAllocationRequest) storageAllocation(balances chainstate.StateCont
 			return nil
 		}, func() error {
 			allocV3 := &storageAllocationV3{
-				Version:              storageAllocationV2Version,
-				DataShards:           nar.DataShards,
-				ParityShards:         nar.ParityShards,
-				Size:                 nar.Size,
-				Expiration:           common.Timestamp(common.ToTime(now).Add(conf.TimeUnit).Unix()),
-				Owner:                nar.Owner,
-				OwnerPublicKey:       nar.OwnerPublicKey,
-				PreferredBlobbers:    nar.Blobbers,
-				ReadPriceRange:       nar.ReadPriceRange,
-				WritePriceRange:      nar.WritePriceRange,
-				ThirdPartyExtendable: nar.ThirdPartyExtendable,
-				FileOptions:          nar.FileOptions,
-				IsEnterprise:         &nar.IsEnterprise,
-				StorageVersion:       &nar.StorageVersion,
+				Version:                storageAllocationV2Version,
+				DataShards:             nar.DataShards,
+				ParityShards:           nar.ParityShards,
+				Size:                   nar.Size,
+				Expiration:             common.Timestamp(common.ToTime(now).Add(conf.TimeUnit).Unix()),
+				Owner:                  nar.Owner,
+				OwnerPublicKey:         nar.OwnerPublicKey,
+				PreferredBlobbers:      nar.Blobbers,
+				ReadPriceRange:         nar.ReadPriceRange,
+				WritePriceRange:        nar.WritePriceRange,
+				ThirdPartyExtendable:   nar.ThirdPartyExtendable,
+				FileOptions:            nar.FileOptions,
+				IsEnterprise:           &nar.IsEnterprise,
+				StorageVersion:         &nar.StorageVersion,
+				OwnerSigningPublickKey: &nar.OwnerSigningPublickKey,
 			}
 			sa.SetEntity(allocV3)
 			return nil
