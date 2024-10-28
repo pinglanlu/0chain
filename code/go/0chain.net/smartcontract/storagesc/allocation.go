@@ -1199,7 +1199,7 @@ func (sc *StorageSmartContract) updateAllocationRequestInternal(
 			alloc.OwnerPublicKey = request.OwnerPublicKey
 		}
 
-		actErr = chainstate.WithActivation(balances, "hercules", func() error {
+		if actErr = chainstate.WithActivation(balances, "hercules", func() error {
 			return nil
 		}, func() error {
 			if request.OwnerSigningPublicKey != "" {
@@ -1213,7 +1213,9 @@ func (sc *StorageSmartContract) updateAllocationRequestInternal(
 
 			}
 			return nil
-		})
+		}); actErr != nil {
+			return "", actErr
+		}
 	}
 
 	var cpBalance currency.Coin
