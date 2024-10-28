@@ -328,6 +328,7 @@ func (c *Chain) BlockWorker(ctx context.Context) {
 			return
 		case <-c.notifySyncBlockC:
 			if syncing {
+				logging.Logger.Debug("process block, receive sync request, already syncing")
 				continue
 			}
 			logging.Logger.Debug("process block, received notify block sync request")
@@ -428,6 +429,7 @@ func (c *Chain) BlockWorker(ctx context.Context) {
 				}
 				// see no block in buffer to process
 				syncing = false
+				logging.Logger.Debug("process block, no blobber in buffer", zap.Int64("current round", cr))
 
 				// see if the miner is in the MB, and if not, continue to sync blocks
 				mb := c.GetMagicBlock(cr)
