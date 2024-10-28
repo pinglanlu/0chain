@@ -656,7 +656,12 @@ func (mc *Chain) updateFinalizedBlock(ctx context.Context, b *block.Block) error
 		}
 	}
 
-	proposedBlocks := mc.GetRound(b.Round).GetProposedBlocks()
+	br := mc.GetRound(b.Round)
+	if br == nil {
+		return nil
+	}
+
+	proposedBlocks := br.GetProposedBlocks()
 	for _, sb := range proposedBlocks {
 		if sb.MinerID == selfID && sb.Hash != b.Hash {
 			_, err := transaction.CollectInvalidFutureTxns(common.GetRootContext(), sb.CreationDate, cs.Nonce, selfID)
