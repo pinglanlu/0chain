@@ -1199,15 +1199,21 @@ func (sc *StorageSmartContract) updateAllocationRequestInternal(
 			alloc.OwnerPublicKey = request.OwnerPublicKey
 		}
 
-		if request.OwnerSigningPublicKey != "" {
-			if err = sa.Update(&storageAllocationV3{}, func(e entitywrapper.EntityI) error {
-				a := e.(*storageAllocationV3)
-				a.OwnerSigningPublickKey = &request.OwnerSigningPublicKey
-				return nil
-			}); err != nil {
-				return "", common.NewError("allocation_updating_failed", err.Error())
+		actErr = chainstate.WithActivation(balances, "hercules", func() error {
+			return nil
+		}, func() error {
+			if request.OwnerSigningPublicKey != "" {
+				if err = sa.Update(&storageAllocationV3{}, func(e entitywrapper.EntityI) error {
+					a := e.(*storageAllocationV3)
+					a.OwnerSigningPublickKey = &request.OwnerSigningPublicKey
+					return nil
+				}); err != nil {
+					return common.NewError("allocation_updating_failed", err.Error())
+				}
+
 			}
-		}
+			return nil
+		})
 	}
 
 	var cpBalance currency.Coin
