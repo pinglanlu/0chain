@@ -428,7 +428,8 @@ type storageAllocationV3 struct {
 	Version      string `json:"version" msg:"version"`
 	IsEnterprise *bool  `json:"is_enterprise"`
 
-	StorageVersion *int `json:"storage_version"`
+	StorageVersion         *int    `json:"storage_version"`
+	OwnerSigningPublickKey *string `json:"owner_signing_public_key"`
 }
 
 const storageAllocationV3Version = "v3"
@@ -807,6 +808,9 @@ func (sa *StorageAllocation) buildDbUpdates(balances cstate.StateContextI) event
 			}
 			if v3.StorageVersion != nil {
 				eAlloc.StorageVersion = *v3.StorageVersion
+			}
+			if v3.OwnerSigningPublickKey != nil {
+				eAlloc.OwnerSigningPublicKey = *v3.OwnerSigningPublickKey
 			}
 		}
 		return nil
