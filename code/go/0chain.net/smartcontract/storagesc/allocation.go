@@ -1,6 +1,7 @@
 package storagesc
 
 import (
+	"0chain.net/core/util/entitywrapper"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -95,8 +96,9 @@ type newAllocationRequest struct {
 	FileOptionsChanged   bool       `json:"file_options_changed"`
 	FileOptions          uint16     `json:"file_options"`
 
-	IsEnterprise   bool `json:"is_enterprise"`
-	StorageVersion int  `json:"storage_version"`
+	IsEnterprise           bool   `json:"is_enterprise"`
+	StorageVersion         int    `json:"storage_version"`
+	OwnerSigningPublickKey string `json:"owner_signing_public_key"`
 }
 
 // storageAllocation from the request
@@ -140,20 +142,21 @@ func (nar *newAllocationRequest) storageAllocation(balances chainstate.StateCont
 			return nil
 		}, func() error {
 			allocV3 := &storageAllocationV3{
-				Version:              storageAllocationV2Version,
-				DataShards:           nar.DataShards,
-				ParityShards:         nar.ParityShards,
-				Size:                 nar.Size,
-				Expiration:           common.Timestamp(common.ToTime(now).Add(conf.TimeUnit).Unix()),
-				Owner:                nar.Owner,
-				OwnerPublicKey:       nar.OwnerPublicKey,
-				PreferredBlobbers:    nar.Blobbers,
-				ReadPriceRange:       nar.ReadPriceRange,
-				WritePriceRange:      nar.WritePriceRange,
-				ThirdPartyExtendable: nar.ThirdPartyExtendable,
-				FileOptions:          nar.FileOptions,
-				IsEnterprise:         &nar.IsEnterprise,
-				StorageVersion:       &nar.StorageVersion,
+				Version:                storageAllocationV2Version,
+				DataShards:             nar.DataShards,
+				ParityShards:           nar.ParityShards,
+				Size:                   nar.Size,
+				Expiration:             common.Timestamp(common.ToTime(now).Add(conf.TimeUnit).Unix()),
+				Owner:                  nar.Owner,
+				OwnerPublicKey:         nar.OwnerPublicKey,
+				PreferredBlobbers:      nar.Blobbers,
+				ReadPriceRange:         nar.ReadPriceRange,
+				WritePriceRange:        nar.WritePriceRange,
+				ThirdPartyExtendable:   nar.ThirdPartyExtendable,
+				FileOptions:            nar.FileOptions,
+				IsEnterprise:           &nar.IsEnterprise,
+				StorageVersion:         &nar.StorageVersion,
+				OwnerSigningPublickKey: &nar.OwnerSigningPublickKey,
 			}
 			sa.SetEntity(allocV3)
 			return nil
@@ -590,6 +593,8 @@ type updateAllocationRequest struct {
 	SetThirdPartyExtendable bool   `json:"set_third_party_extendable"`
 	FileOptionsChanged      bool   `json:"file_options_changed"`
 	FileOptions             uint16 `json:"file_options"`
+
+	OwnerSigningPublicKey string `json:"owner_signing_public_key"`
 }
 
 func (uar *updateAllocationRequest) decode(b []byte) error {
@@ -1192,6 +1197,24 @@ func (sc *StorageSmartContract) updateAllocationRequestInternal(
 				return "", common.NewError("allocation_updating_failed", "owner public key is required when updating owner id")
 			}
 			alloc.OwnerPublicKey = request.OwnerPublicKey
+		}
+
+		if actErr = chainstate.WithActivation(balances, "hercules", func() error {
+			return nil
+		}, func() error {
+			if request.OwnerSigningPublicKey != "" {
+				if err = sa.Update(&storageAllocationV3{}, func(e entitywrapper.EntityI) error {
+					a := e.(*storageAllocationV3)
+					a.OwnerSigningPublickKey = &request.OwnerSigningPublicKey
+					return nil
+				}); err != nil {
+					return common.NewError("allocation_updating_failed", err.Error())
+				}
+
+			}
+			return nil
+		}); actErr != nil {
+			return "", actErr
 		}
 	}
 

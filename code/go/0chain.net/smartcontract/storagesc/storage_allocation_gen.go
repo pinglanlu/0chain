@@ -805,9 +805,9 @@ func (z *storageAllocationV2) Msgsize() (s int) {
 // MarshalMsg implements msgp.Marshaler
 func (z *storageAllocationV3) MarshalMsg(b []byte) (o []byte, err error) {
 	o = msgp.Require(b, z.Msgsize())
-	// map header, size 27
+	// map header, size 28
 	// string "ID"
-	o = append(o, 0xde, 0x0, 0x1b, 0xa2, 0x49, 0x44)
+	o = append(o, 0xde, 0x0, 0x1c, 0xa2, 0x49, 0x44)
 	o = msgp.AppendString(o, z.ID)
 	// string "Tx"
 	o = append(o, 0xa2, 0x54, 0x78)
@@ -948,6 +948,13 @@ func (z *storageAllocationV3) MarshalMsg(b []byte) (o []byte, err error) {
 		o = msgp.AppendNil(o)
 	} else {
 		o = msgp.AppendInt(o, *z.StorageVersion)
+	}
+	// string "OwnerSigningPublickKey"
+	o = append(o, 0xb6, 0x4f, 0x77, 0x6e, 0x65, 0x72, 0x53, 0x69, 0x67, 0x6e, 0x69, 0x6e, 0x67, 0x50, 0x75, 0x62, 0x6c, 0x69, 0x63, 0x6b, 0x4b, 0x65, 0x79)
+	if z.OwnerSigningPublickKey == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o = msgp.AppendString(o, *z.OwnerSigningPublickKey)
 	}
 	return
 }
@@ -1202,6 +1209,23 @@ func (z *storageAllocationV3) UnmarshalMsg(bts []byte) (o []byte, err error) {
 					return
 				}
 			}
+		case "OwnerSigningPublickKey":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.OwnerSigningPublickKey = nil
+			} else {
+				if z.OwnerSigningPublickKey == nil {
+					z.OwnerSigningPublickKey = new(string)
+				}
+				*z.OwnerSigningPublickKey, bts, err = msgp.ReadStringBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "OwnerSigningPublickKey")
+					return
+				}
+			}
 		default:
 			bts, err = msgp.Skip(bts)
 			if err != nil {
@@ -1245,6 +1269,12 @@ func (z *storageAllocationV3) Msgsize() (s int) {
 		s += msgp.NilSize
 	} else {
 		s += msgp.IntSize
+	}
+	s += 23
+	if z.OwnerSigningPublickKey == nil {
+		s += msgp.NilSize
+	} else {
+		s += msgp.StringPrefixSize + len(*z.OwnerSigningPublickKey)
 	}
 	return
 }

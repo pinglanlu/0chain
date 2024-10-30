@@ -95,19 +95,20 @@ func allocationTableToStorageAllocationBlobbers(alloc *event.Allocation, eventDb
 			FailedChallenges:          alloc.FailedChallenges,
 			LastestClosedChallengeTxn: alloc.LatestClosedChallengeTxn,
 		},
-		BlobberAllocs:     blobberDetails,
-		BlobberAllocsMap:  blobberMap,
-		ReadPriceRange:    PriceRange{alloc.ReadPriceMin, alloc.ReadPriceMax},
-		WritePriceRange:   PriceRange{alloc.WritePriceMin, alloc.WritePriceMax},
-		StartTime:         common.Timestamp(alloc.StartTime),
-		Finalized:         alloc.Finalized,
-		Canceled:          alloc.Cancelled,
-		MovedToChallenge:  alloc.MovedToChallenge,
-		MovedBack:         alloc.MovedBack,
-		MovedToValidators: alloc.MovedToValidators,
-		TimeUnit:          time.Duration(alloc.TimeUnit),
-		IsEnterprise:      &alloc.IsEnterprise,
-		StorageVersion:    &alloc.StorageVersion,
+		BlobberAllocs:          blobberDetails,
+		BlobberAllocsMap:       blobberMap,
+		ReadPriceRange:         PriceRange{alloc.ReadPriceMin, alloc.ReadPriceMax},
+		WritePriceRange:        PriceRange{alloc.WritePriceMin, alloc.WritePriceMax},
+		StartTime:              common.Timestamp(alloc.StartTime),
+		Finalized:              alloc.Finalized,
+		Canceled:               alloc.Cancelled,
+		MovedToChallenge:       alloc.MovedToChallenge,
+		MovedBack:              alloc.MovedBack,
+		MovedToValidators:      alloc.MovedToValidators,
+		TimeUnit:               time.Duration(alloc.TimeUnit),
+		IsEnterprise:           &alloc.IsEnterprise,
+		StorageVersion:         &alloc.StorageVersion,
+		OwnerSigningPublickKey: &alloc.OwnerSigningPublicKey,
 	}
 	sa := &StorageAllocation{}
 	sa.SetEntity(saV3)
@@ -175,6 +176,9 @@ func storageAllocationToAllocationTable(balances cstate.StateContextI, sa *Stora
 			}
 			if v3.StorageVersion != nil {
 				alloc.StorageVersion = *v3.StorageVersion
+			}
+			if v3.OwnerSigningPublickKey != nil {
+				alloc.OwnerSigningPublicKey = *v3.OwnerSigningPublickKey
 			}
 		}
 		return nil
