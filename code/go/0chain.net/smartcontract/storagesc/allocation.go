@@ -608,6 +608,7 @@ func (uar *updateAllocationRequest) validate(
 ) error {
 	if uar.Size == 0 &&
 		!uar.Extend &&
+		len(uar.OwnerSigningPublicKey) == 0 &&
 		len(uar.AddBlobberId) == 0 &&
 		len(uar.Name) == 0 &&
 		(!uar.SetThirdPartyExtendable || (uar.SetThirdPartyExtendable && alloc.ThirdPartyExtendable)) &&

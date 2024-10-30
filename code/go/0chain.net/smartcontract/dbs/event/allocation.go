@@ -163,6 +163,7 @@ func (edb *EventDb) updateAllocations(allocs []Allocation) error {
 		"third_party_extendable",
 		"file_options",
 		"is_enterprise",
+		"owner_signing_public_key",
 	}
 
 	columns, err := Columnize(allocs)
