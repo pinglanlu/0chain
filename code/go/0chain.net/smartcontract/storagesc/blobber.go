@@ -127,6 +127,32 @@ func (sc *StorageSmartContract) hasBlobberUrl(blobberURL string,
 	}
 }
 
+func (sc *StorageSmartContract) isBlobberInKilledIds(blobberID string,
+	balances cstate.StateContextI) (bool, error) {
+	err := balances.GetTrieNode(GetKilledIdKey(blobberID, "blobber"), &datastore.NOIDField{})
+	switch err {
+	case nil:
+		return true, nil
+	case util.ErrValueNotPresent:
+		return false, nil
+	default:
+		return false, err
+	}
+}
+
+func (sc *StorageSmartContract) isValidatorInKilledIds(validatorID string,
+	balances cstate.StateContextI) (bool, error) {
+	err := balances.GetTrieNode(GetKilledIdKey(validatorID, "validator"), &datastore.NOIDField{})
+	switch err {
+	case nil:
+		return true, nil
+	case util.ErrValueNotPresent:
+		return false, nil
+	default:
+		return false, err
+	}
+}
+
 func validateBlobberUpdateSettings(updateBlobberRequest *dto.StorageDtoNode, conf *Config) error {
 	if updateBlobberRequest.Capacity != nil && *updateBlobberRequest.Capacity <= conf.MinBlobberCapacity {
 		return errors.New("insufficient blobber capacity in update blobber settings")
@@ -1261,9 +1287,23 @@ func (sc *StorageSmartContract) insertBlobber(t *transaction.Transaction,
 	if err != nil {
 		return fmt.Errorf("could not check blobber url: %v", err)
 	}
-
 	if has {
 		return fmt.Errorf("invalid blobber, url: %s already used", bb.BaseURL)
+	}
+
+	if actErr := cstate.WithActivation(balances, "hercules", func() error {
+		return nil
+	}, func() error {
+		has, err = sc.isBlobberInKilledIds(bb.ID, balances)
+		if err != nil {
+			return fmt.Errorf("could not check blobber killed ids: %v", err)
+		}
+		if has {
+			return fmt.Errorf("blobber with id: %s is killed", bb.ID)
+		}
+		return nil
+	}); actErr != nil {
+		return actErr
 	}
 
 	// check params
@@ -1347,7 +1387,7 @@ func (sc *StorageSmartContract) updateBlobberVersion(t *transaction.Transaction,
 		return "", common.NewError("update_blobber_version_failed", err.Error())
 	}
 
-	storageNodeDto := &dto.StorageNodeVersion{}
+	storageNodeDto := &dto.StorageNodeIdField{}
 	if err := json.Unmarshal(input, storageNodeDto); err != nil {
 		return "", common.NewError("update_blobber_version_failed",
 			"malformed request: "+err.Error())
