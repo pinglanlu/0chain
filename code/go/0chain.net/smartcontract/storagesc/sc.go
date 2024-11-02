@@ -300,14 +300,14 @@ func (sc *StorageSmartContract) Execute(t *transaction.Transaction,
 			return resp, nil
 		}
 
-		insertKilledBlobber := false
+		insertKilledProvider := false
 		actErr = chainstate.WithActivation(balances, "hercules", func() error {
 			return nil
 		}, func() error {
 			if funcName == "insert_killed_provider_id" {
 				resp, err = sc.insertKilledProviderID(t, input, balances)
 				if err == nil {
-					insertKilledBlobber = true
+					insertKilledProvider = true
 				}
 				return err
 			}
@@ -316,7 +316,7 @@ func (sc *StorageSmartContract) Execute(t *transaction.Transaction,
 		if actErr != nil || resp != "" {
 			return resp, actErr
 		}
-		if insertKilledBlobber {
+		if insertKilledProvider {
 			return resp, nil
 		}
 
