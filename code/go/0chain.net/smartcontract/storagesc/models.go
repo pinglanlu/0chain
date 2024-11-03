@@ -301,7 +301,11 @@ type Info struct {
 }
 
 func GetUrlKey(baseUrl, globalKey string) datastore.Key {
-	return datastore.Key(globalKey + baseUrl)
+	return globalKey + baseUrl
+}
+
+func GetKilledIdKey(id, providerType string) datastore.Key {
+	return "killed:" + providerType + ":" + id
 }
 
 type StorageNodes struct {

@@ -135,6 +135,10 @@ func (sn *StorageNode) GetUrlKey(globalKey string) datastore.Key {
 	return GetUrlKey(sn.mustBase().BaseURL, globalKey)
 }
 
+func (sn *StorageNode) GetKilledIdKey(globalKey string) datastore.Key {
+	return GetUrlKey(sn.mustBase().BaseURL, globalKey)
+}
+
 func (sn *StorageNode) Encode() []byte {
 	buff, _ := json.Marshal(sn)
 	return buff
