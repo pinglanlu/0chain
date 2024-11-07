@@ -1398,6 +1398,7 @@ func (sab *storageAllocationBase) changeBlobbers(
 	sc *StorageSmartContract,
 	txn *transaction.Transaction,
 	isEnterpriseBlobber bool,
+	storageVersion int,
 ) ([]*StorageNode, error) {
 	var err error
 
@@ -1487,6 +1488,10 @@ func (sab *storageAllocationBase) changeBlobbers(
 							} else if !success {
 								return fmt.Errorf("blobber %s auth ticket verification failed", b.ID)
 							}
+						}
+
+						if !isEnterpriseBlobber && b.StorageVersion != nil && storageVersion == 1 && *b.StorageVersion != 1 {
+							return fmt.Errorf("blobber version %s is not compatible with v2 allocation", b.ID)
 						}
 
 						return nil
@@ -1625,7 +1630,7 @@ func (sab *storageAllocationBase) validateEachBlobber(
 				return fmt.Errorf("blobber %s is enterprise", b.ID)
 			}
 
-			if request.StorageVersion == 1 && b.StorageVersion != 1 {
+			if !request.IsEnterprise && request.StorageVersion == 1 && b.StorageVersion != 1 {
 				return fmt.Errorf("blobber version %s is not compatible with v2 allocation", b.ID)
 			}
 
