@@ -620,7 +620,7 @@ func TestChangeBlobbers(t *testing.T) {
 			_, err := sa.changeBlobbers(&Config{TimeUnit: confTimeUnit}, blobbers, addID, "", removeID, now, balances, sc, &transaction.Transaction{
 				ClientID:     clientId,
 				CreationDate: now,
-			}, false)
+			}, false, 0)
 			require.EqualValues(t, tt.want.err, err != nil)
 			if err != nil {
 				require.EqualValues(t, tt.want.errMsg, err.Error())

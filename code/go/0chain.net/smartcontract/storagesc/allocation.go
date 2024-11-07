@@ -1122,7 +1122,10 @@ func (sc *StorageSmartContract) updateAllocationRequestInternal(
 			err.Error())
 	}
 
-	isEnterprise := false
+	var (
+		isEnterprise   bool
+		storageVersion = 0
+	)
 	if actErr = chainstate.WithActivation(balances, "electra", func() error {
 		return nil
 	}, func() error {
@@ -1131,8 +1134,14 @@ func (sc *StorageSmartContract) updateAllocationRequestInternal(
 				isEnterprise = true
 			}
 		} else if sa.Entity().GetVersion() == "v3" {
-			if v3 := sa.Entity().(*storageAllocationV3); v3 != nil && v3.IsEnterprise != nil && *v3.IsEnterprise {
-				isEnterprise = true
+			if v3 := sa.Entity().(*storageAllocationV3); v3 != nil {
+				if v3.IsEnterprise != nil && *v3.IsEnterprise {
+					isEnterprise = true
+				}
+
+				if v3.StorageVersion != nil {
+					storageVersion = *v3.StorageVersion
+				}
 			}
 		}
 		return nil
@@ -1154,7 +1163,7 @@ func (sc *StorageSmartContract) updateAllocationRequestInternal(
 
 		if len(request.AddBlobberId) > 0 {
 			blobbers, err = alloc.changeBlobbers(
-				conf, blobbers, request.AddBlobberId, request.AddBlobberAuthTicket, request.RemoveBlobberId, t.CreationDate, balances, sc, t, isEnterprise,
+				conf, blobbers, request.AddBlobberId, request.AddBlobberAuthTicket, request.RemoveBlobberId, t.CreationDate, balances, sc, t, isEnterprise, storageVersion,
 			)
 			if err != nil {
 				return "", common.NewError("allocation_updating_failed", err.Error())

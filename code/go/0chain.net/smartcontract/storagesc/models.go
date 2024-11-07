@@ -1397,7 +1397,8 @@ func (sab *storageAllocationBase) changeBlobbers(
 	balances cstate.StateContextI,
 	sc *StorageSmartContract,
 	txn *transaction.Transaction,
-	isEnterpriseBlobber bool,
+	isEnterpriseAlloc bool,
+	storageVersion int,
 ) ([]*StorageNode, error) {
 	var err error
 
@@ -1453,7 +1454,7 @@ func (sab *storageAllocationBase) changeBlobbers(
 					return addedBlobber.Update(&storageNodeV3{}, func(e entitywrapper.EntityI) error {
 						b := e.(*storageNodeV3)
 
-						if isEnterpriseBlobber {
+						if isEnterpriseAlloc {
 							if b.IsEnterprise == nil || !*b.IsEnterprise {
 								return fmt.Errorf("blobber %s is not enterprise", b.ID)
 							}
@@ -1474,7 +1475,7 @@ func (sab *storageAllocationBase) changeBlobbers(
 					return addedBlobber.Update(&storageNodeV4{}, func(e entitywrapper.EntityI) error {
 						b := e.(*storageNodeV4)
 
-						if isEnterpriseBlobber {
+						if isEnterpriseAlloc {
 							if b.IsEnterprise == nil || !*b.IsEnterprise {
 								return fmt.Errorf("blobber %s is not enterprise", b.ID)
 							}
@@ -1487,6 +1488,10 @@ func (sab *storageAllocationBase) changeBlobbers(
 							} else if !success {
 								return fmt.Errorf("blobber %s auth ticket verification failed", b.ID)
 							}
+						}
+
+						if !isEnterpriseAlloc && b.StorageVersion != nil && storageVersion == 1 && *b.StorageVersion != 1 {
+							return fmt.Errorf("blobber version %s is not compatible with v2 allocation", b.ID)
 						}
 
 						return nil
@@ -1506,7 +1511,7 @@ func (sab *storageAllocationBase) changeBlobbers(
 	ba := newBlobberAllocation(afterSize, sab, addedBlobber.mustBase(), conf, now)
 
 	if len(removeId) > 0 {
-		if blobbers, err = replaceBlobber(sab, blobbers, removeId, balances, sc, txn, addedBlobber, ba, now, isEnterpriseBlobber); err != nil {
+		if blobbers, err = replaceBlobber(sab, blobbers, removeId, balances, sc, txn, addedBlobber, ba, now, isEnterpriseAlloc); err != nil {
 			return nil, err
 		}
 	} else {
@@ -1625,7 +1630,7 @@ func (sab *storageAllocationBase) validateEachBlobber(
 				return fmt.Errorf("blobber %s is enterprise", b.ID)
 			}
 
-			if request.StorageVersion == 1 && b.StorageVersion != 1 {
+			if !request.IsEnterprise && request.StorageVersion == 1 && b.StorageVersion != 1 {
 				return fmt.Errorf("blobber version %s is not compatible with v2 allocation", b.ID)
 			}
 
